@@ -65,3 +65,14 @@ Modifica
 ```
 
 Ora con ***npm start*** faremo partire sia backend che frontend tutto assieme.
+
+### INSTALLAZIONE MULTER ###
+
+npm i multer -> installazione
+
+nel file server.js aggiungiamo:
+
+```js
+const multer = require('multer')
+```
+
