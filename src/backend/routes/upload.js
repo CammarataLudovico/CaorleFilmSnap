@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const upload = require('middleware/uploadMiddleware')
+const upload = require('../middleware/uploadMiddleware')
 
-server.post('upload', upload.array('photos', 10), (req, res) => {
+router.post('/upload', upload.array('photos', 10), (req, res) => {
     if (!req.files) {
         return res.status(400).json({ message: "Nessuna immagine caricata, riprovare per favore!" })
     }
@@ -17,4 +17,4 @@ server.post('upload', upload.array('photos', 10), (req, res) => {
     );
 });
 
-modules.export = router;
+module.exports = router;
