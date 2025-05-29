@@ -1,1 +1,5 @@
 node_modules/
+
+src/frontend/
+
+src/backend/test/test.http

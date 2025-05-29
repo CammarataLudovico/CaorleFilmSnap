@@ -8,10 +8,15 @@
   "main": "server.js",
   "scripts": {
     "test": "npm start",
-    "start": "node --watch src/server.js"
+    "start:backend": "node --watch src/backend/src/server.js",
+    "start:frontend": "npm --prefix src/frontend run dev",
+    "start": "concurrently \"npm run start:backend\" \"npm run start:frontend\""
   },
   "dependencies": {
     "cors": "^2.8.5",
     "express": "^5.1.0"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
   }
 }
