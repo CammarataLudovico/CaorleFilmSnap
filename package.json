@@ -1,6 +1,6 @@
 {
-  "name": "caorlefilmsnap",
-  "version": "0.0.1",
+  "name": "caorle-film-snap",
+  "version": "1.0.0",
   "description": "Web app per il Caorle Film Festival che permette di caricare, moderare e visualizzare foto direttamente online. Backend con Express, frontend React + Vite, sistema di moderazione immagini e autenticazione admin.",
   "license": "ISC",
   "author": "Ludovico Cammarata",
@@ -13,10 +13,15 @@
     "start": "concurrently \"npm run start:backend\" \"npm run start:frontend\""
   },
   "dependencies": {
+    "@google-cloud/vision": "^5.2.0",
     "cors": "^2.8.5",
     "express": "^5.1.0",
+    "i18next": "^25.2.1",
     "multer": "^2.0.0",
-    "serve-index": "^1.9.1"
+    "react-photo-album": "^3.1.0",
+    "serve-index": "^1.9.1",
+    "sqlite3": "^5.1.7",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "concurrently": "^9.1.2"

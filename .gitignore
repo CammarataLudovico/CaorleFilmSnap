@@ -3,3 +3,13 @@ node_modules/
 src/frontend/
 
 src/backend/test/test.http
+
+src/backend/uploads
+
+src/backend/keys/
+
+src/data
+
+.env
+
+graphql
