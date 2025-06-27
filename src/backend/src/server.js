@@ -5,6 +5,19 @@ const pendingPhotosRoutes = require('../routes/pendingPhotos');
 const serveIndex = require('serve-index');
 const multer = require('multer')
 const fs = require('fs');
+const i18next = require('i18next')
+const i18nextBackend = require('i18next-fs-backend')
+
+i18next.use(i18nextBackend).init({
+  lng: 'it',
+  fallbackLng: 'en',
+  backend: {
+    loadpath: __dirname + '../../locales/{{lng}}/translation.json'
+  }
+}, () => {
+  console.log('i18next backend ready')
+}
+)
 
 const server = express();
 const PORT = 3001;
