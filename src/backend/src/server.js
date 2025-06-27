@@ -5,29 +5,33 @@ const pendingPhotosRoutes = require('../routes/pendingPhotos');
 const serveIndex = require('serve-index');
 const multer = require('multer')
 const fs = require('fs');
+const path = require('path');
 
 const server = express();
 const PORT = 3001;
 
 server.use(cors({
-  origin: 'http://localhost:5173',
-  methods: ['GET', 'POST'],
+  origin: ['http://localhost:5173', 'http://localhost:3000'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials: true
 }));
 
 server.use(express.json());
+
+// Serve static files with CORS headers
+server.use('/uploads', cors({
+  origin: ['http://localhost:5173', 'http://localhost:3000'],
+  methods: ['GET'],
+  credentials: true
+}), express.static(path.join(__dirname, '..', 'uploads')), serveIndex(path.join(__dirname, '..', 'uploads'), {'icons': true}));
 
 server.get('/', (_req, res) => {
     res.send("Hello World");
 })
 
-const path = require('path');
-
-// server.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 server.use('/', uploadRoutes)
-server.use('/api', uploadRoutes);
-server.use('/api', pendingPhotosRoutes);
-// serve the entire uploads folder with file index
-server.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')), serveIndex(path.join(__dirname, '..', 'uploads'), {'icons': true})); // gestione intera cartella file
+server.use('/api/upload', uploadRoutes);
+server.use('/api/pending', pendingPhotosRoutes);
 
 // API: Approve a photo (move from pending to approved)
 server.put('/api/photos/:filename/approve', (req, res) => {
