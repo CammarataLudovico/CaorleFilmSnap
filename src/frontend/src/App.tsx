@@ -14,13 +14,13 @@ function App() {
 
   useEffect(() => {
     // fetch approved files list from backend
-    fetch('http://localhost:3001/api/photos/approved')
+    fetch(`${import.meta.env.VITE_API_IP}/photos/approved`)
       .then(res => res.json())
       .then(async data => {
         // for each file, create an object with src and dimensions (use placeholder for width/height)
         const photoObjs = await Promise.all(
           data.files.map(async (filename: string) => {
-            const src = `http://localhost:3001/uploads/approved/${filename}`;
+            const src = `${import.meta.env.VITE_API_IP}/uploads/approved/${filename}`;
             // try to load the image to get real dimensions
             return new Promise<{ src: string; width: number; height: number }>((resolve) => {
               const img = new window.Image();
@@ -59,7 +59,7 @@ function App() {
     })
 
     try {
-      const res = await fetch("http://localhost:3001/upload", {
+      const res = await fetch(`${import.meta.env.VITE_API_IP}/upload`, {
         method: "POST",
         body: formData,
       });

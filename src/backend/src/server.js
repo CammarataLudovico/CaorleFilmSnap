@@ -23,8 +23,15 @@ const server = express();
 const PORT = 3001;
 
 server.use(cors({
-  origin: 'http://localhost:5173',
-  methods: ['GET', 'POST'],
+  origin: [
+    'http://caorlefilmsnap.ludov.dev',
+    process.env.VPS_IP,
+    process.env.LOCALHOST,
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  exposedHeaders: ['Content-Length'], // opzionale
 }));
 
 server.use(express.json());

@@ -13,3 +13,7 @@ src/data
 .env
 
 graphql
+
+Dockerfile
+
+CaorleFilmSnap-V2.zip
