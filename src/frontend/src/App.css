@@ -7,6 +7,7 @@
   margin: 0 auto;
   padding: 2rem;
   text-align: center;
+  background-color: #242424;
 }
 
 .logo {
@@ -40,4 +41,14 @@
 
 .read-the-docs {
   color: #888;
+}
+
+form {
+  padding-bottom: 1.5rem !important;
+}
+
+.uploadMess {
+  color: white;
+  border-radius: 50;
+  padding-bottom: 1rem;
 }

@@ -1,0 +1,20 @@
+{
+  "file": {
+    "plsSelect": "Seleccione al menos 1 archivo para cargar, ¡por favor!",
+    "sensitiveAgreed": "¡Debe confirmar que no ha cargado archivos que contienen contenido confidencial!",
+    "fileSize": "Tamaño máximo para un solo archivo: 16 MB",
+    "pickFile": "Seleccione los archivos",
+    "legalNotes": "Notas legales",
+    "sensitiveCheckbox": "¡No cargué archivos que contenían contenido sensible!",
+    "upload": "Enviar fotos",
+    "language": "Lengua:"
+  },
+  "upload": {
+    "genericError": "❌ ¡Error genérico en la carga!",
+    "success": "✅ Archivo cargado correctamente!",
+    "uploadError": "❌ Error de carga: ",
+    "unkownError": "❌ ¡Error desconocido durante la carga! ",
+    "uploading": "Cargando en curso ...",
+    "pageStartLoading": "Cargando fotos ..."
+  }
+}

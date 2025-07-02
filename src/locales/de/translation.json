@@ -1,0 +1,20 @@
+{
+  "file": {
+    "plsSelect": "Wählen Sie bitte mindestens 1 Datei zum Laden!",
+    "sensitiveAgreed": "Sie müssen bestätigen, dass Sie keine Dateien mit sensiblen Inhalten hochgeladen haben!",
+    "fileSize": "Maximale Größe für einzelne Datei: 16 MB",
+    "pickFile": "Wählen Sie die Dateien aus",
+    "legalNotes": "Rechtliche Notizen",
+    "sensitiveCheckbox": "Ich habe keine Dateien mit sensiblen Inhalten hochgeladen!",
+    "upload": "Fotos senden",
+    "language": "Zunge:"
+  },
+  "upload": {
+    "genericError": "❌ Generischer Fehler im Upload!",
+    "success": "✅ Richtig geladen!",
+    "uploadError": "❌ Fehler beim Hochladen: ",
+    "unkownError": "❌ Unbekannter Fehler während des Uploads! ",
+    "uploading": "Laufend laden ...",
+    "pageStartLoading": "Fotos laden ..."
+  }
+}
