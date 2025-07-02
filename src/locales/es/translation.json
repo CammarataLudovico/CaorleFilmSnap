@@ -7,7 +7,8 @@
     "legalNotes": "Notas legales",
     "sensitiveCheckbox": "¡No cargué archivos que contenían contenido sensible!",
     "upload": "Enviar fotos",
-    "language": "Lengua:"
+    "language": "Lengua:",
+    "remove": "Eliminar"
   },
   "upload": {
     "genericError": "❌ ¡Error genérico en la carga!",

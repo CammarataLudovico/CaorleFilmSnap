@@ -7,7 +7,8 @@
     "legalNotes": "Rechtliche Notizen",
     "sensitiveCheckbox": "Ich habe keine Dateien mit sensiblen Inhalten hochgeladen!",
     "upload": "Fotos senden",
-    "language": "Zunge:"
+    "language": "Zunge:",
+    "remove": "Entfernen"
   },
   "upload": {
     "genericError": "❌ Generischer Fehler im Upload!",

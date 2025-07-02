@@ -7,7 +7,8 @@
     "legalNotes": "Legal notes",
     "sensitiveCheckbox": "I did not upload files containing sensitive content!",
     "upload": "Send photos",
-    "language": "Language:"
+    "language": "Language:",
+    "remove": "Remove"
   },
   "upload": {
     "genericError": "❌ Generic error in the upload!",

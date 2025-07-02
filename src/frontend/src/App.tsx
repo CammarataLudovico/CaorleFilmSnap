@@ -22,7 +22,8 @@ function App() {
   i18n.changeLanguage('it');
 }, []);
 
-  useEffect(() => {
+  // Fetch photos function (to reuse after upload)
+  const fetchPhotos = () => {
     setLoadingPhotos(true);
     // fetch approved files list from backend
     fetch('https://api.caorlefilmsnap.ludov.dev/api/photos/approved')
@@ -42,13 +43,18 @@ function App() {
             });
           })
         );
-        setPhotos(photoObjs);
+        // Show newest first
+        setPhotos(photoObjs.reverse());
         setLoadingPhotos(false);
       })
       .catch(() => {
         setPhotos([]);
         setLoadingPhotos(false);
       });
+  };
+
+  useEffect(() => {
+    fetchPhotos();
   }, []);
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -91,17 +97,25 @@ function App() {
         body: formData,
       });
 
-      if (!res.ok) {
-        const errorText = await res.text();
-        throw new Error(errorText || t('upload.genericError'));
+      type UploadResult = { status: string; [key: string]: unknown };
+      type UploadResponse = { results?: UploadResult[]; message?: string };
+
+      const data: UploadResponse = await res.json();
+
+      // Se almeno una foto è stata rifiutata, avvisa l'utente e NON mostrare il messaggio di successo
+      if (data?.results?.some((r: UploadResult) => r.status === 'rejected')) {
+        setUploadMessage({ type: 'error', text: t('upload.sensitiveRejected', 'Una o più foto sono state rifiutate perché sospette e non verranno pubblicate.') });
+      } else if (!res.ok) {
+        setUploadMessage({ type: 'error', text: data.message || t('upload.genericError') });
+      } else {
+        setUploadMessage({ type: 'success', text: t('upload.success') });
       }
 
-      setUploadMessage({ type: 'success', text: t('upload.success') });
       setFiles(null); // clear selected files
       setImagePreview(null); // clear preview
-      // Optionally, reset the file input value as well
       const fileInput = document.getElementById('file-input') as HTMLInputElement | null;
       if (fileInput) fileInput.value = '';
+      fetchPhotos();
     } catch (error: unknown) {
       if (error instanceof Error) {
         setUploadMessage({ type: 'error', text: `${t('upload.uploadError')} ${error.message}` });
@@ -188,6 +202,22 @@ function App() {
                   loading='lazy'
                 />
                 <span className="text-xs text-gray-500">{files && files[0]?.name}</span>
+              
+              <button
+                type="button"
+                className='btn btn-xs mt-2'
+                style={{ backgroundColor: "red" }}
+                onClick={() => {
+                  setFiles(null);
+                  setImagePreview(null);
+                  const fileInput = document.getElementById('file-input') as HTMLInputElement | null;
+                  if (fileInput) {
+                    fileInput.value = '';
+                }}}
+              >
+                {t('file.remove')}
+              </button>
+              
               </div>
             </div>
           )}
@@ -277,6 +307,9 @@ function App() {
             if (containerWidth < 800) return 3;
             return 3;
           }}
+          componentsProps={(containerWidth) => ({
+            image: { loading: (containerWidth || 0) > 600 ? "eager" : "lazy" },
+          })}
         />
       )}
     </>
