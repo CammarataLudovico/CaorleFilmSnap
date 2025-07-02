@@ -9,10 +9,9 @@ const i18next = require('i18next')
 const i18nextBackend = require('i18next-fs-backend')
 
 i18next.use(i18nextBackend).init({
-  lng: 'it',
   fallbackLng: 'en',
   backend: {
-    loadpath: __dirname + '../../locales/{{lng}}/translation.json'
+    loadPath: __dirname + '../../locales/{{lng}}/translation.json'
   }
 }, () => {
   console.log('i18next backend ready')
@@ -24,9 +23,10 @@ const PORT = 3001;
 
 server.use(cors({
   origin: [
-    'http://caorlefilmsnap.ludov.dev',
-    process.env.VPS_IP,
-    process.env.LOCALHOST,
+    'https://caorlefilmsnap.ludov.dev',
+    'http://caorlefilmsnap.ludov.dev', // utile se test locale
+    'http://78.47.48.59:5173',          // per test con IP diretto
+    'http://localhost:5173'
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -92,14 +92,28 @@ server.get('/api/pending-photos', (req, res) => {
 
 // API: returns the list of files in /uploads/approved (approved photos)
 server.get('/api/photos/approved', (req, res) => {
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 9;
+  const offset = (page - 1) * limit;
   const dir = path.join(__dirname, '../uploads/approved');
   fs.readdir(dir, (err, files) => {
     if (err) {
       return res.status(500).json({ message: 'Error reading directory', error: err.message });
     }
     // Filter only images (jpg, jpeg, png, webp, gif)
-    const imageFiles = files.filter(f => /\.(jpg|jpeg|png|webp|gif)$/i.test(f));
-    res.json({ files: imageFiles });
+    const imageFiles = files
+      .filter(f => /\.(jpg|jpeg|png|webp|gif)$/i.test(f))
+      .sort((a, b) => fs.statSync(path.join(dir, b)).mtimeMs - fs.statSync(path.join(dir, a)).mtimeMs); // order by date
+
+    const paginatedFiles = imageFiles.slice(offset, offset + limit);
+
+    res.json({ 
+      page,
+      limit,
+      total: imageFiles.length,
+      totalPages: Math.ceil(imageFiles.length / limit),
+      files: paginatedFiles
+    });
   });
 });
 

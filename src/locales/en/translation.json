@@ -17,5 +17,9 @@
     "unkownError": "❌ Unknown error during the upload! ",
     "uploading": "Loading ongoing ...",
     "pageStartLoading": "Loading photos ..."
-  }
+  },
+  "pages": {
+        "prev": "Previous",
+        "next": "Next"
+    }
 }

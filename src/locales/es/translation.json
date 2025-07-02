@@ -17,5 +17,9 @@
     "unkownError": "❌ ¡Error desconocido durante la carga! ",
     "uploading": "Cargando en curso ...",
     "pageStartLoading": "Cargando fotos ..."
-  }
+  },
+  "pages": {
+        "prev": "Anterior",
+        "next": "Siguiente"
+    }
 }

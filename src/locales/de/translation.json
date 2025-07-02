@@ -17,5 +17,9 @@
     "unkownError": "❌ Unbekannter Fehler während des Uploads! ",
     "uploading": "Laufend laden ...",
     "pageStartLoading": "Fotos laden ..."
-  }
+  },
+  "pages": {
+        "prev": "Zurück",
+        "next": "Weiter"
+    }
 }

@@ -16,6 +16,11 @@
         "uploadError": "❌ Errore di Upload: ",
         "unkownError": "❌ Errore sconosciuto durante l'upload! ",
         "uploading": "Caricamento in corso...",
-        "pageStartLoading": "Caricamento foto..."
+        "pageStartLoading": "Caricamento foto...",
+        "sensitiveRejected": "Foto rifiutata, era inappropriata!"
+    },
+    "pages": {
+        "prev": "Precedente",
+        "next": "Successiva"
     }
 }

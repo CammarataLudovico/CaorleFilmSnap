@@ -13,10 +13,13 @@ function App() {
   const [files, setFiles] = useState<FileList | null>(null)
   const [agreed, setAgreed] = useState(true)
   const [photos, setPhotos] = useState<{ src: string; width: number; height: number }[]>([])
+  const [page, setPage] = useState(1);
+  const [totalPhotos, setTotalPhotos] = useState(0); // track total photos
+  const limitPhotoPage = 9;
   const [loadingPhotos, setLoadingPhotos] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [uploadMessage, setUploadMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]); // Cambiato da string | null a array di stringhe
   const { t, i18n } = useTranslation();
   useEffect(() => {
   i18n.changeLanguage('it');
@@ -25,18 +28,21 @@ function App() {
   // Fetch photos function (to reuse after upload)
   const fetchPhotos = () => {
     setLoadingPhotos(true);
-    // fetch approved files list from backend
-    fetch('https://api.caorlefilmsnap.ludov.dev/api/photos/approved')
+    fetch(`https://api.caorlefilmsnap.ludov.dev/api/photos/approved?page=${page}&limit=${limitPhotoPage}`)
       .then(res => res.json())
       .then(async data => {
-        // for each file, create an object with src and dimensions (use placeholder for width/height)
+        setTotalPhotos(data.total || 0); // track total for pagination
+        // For each file, create an object with src and dimensions (use placeholder for width/height)
         const photoObjs = await Promise.all(
           data.files.map(async (filename: string) => {
             const src = `https://api.caorlefilmsnap.ludov.dev/uploads/approved/${filename}`;
-            // try to load the image to get real dimensions
+            // Just get image dimensions, do NOT try to orient remote images with EXIF-js (not possible)
             return new Promise<{ src: string; width: number; height: number }>((resolve) => {
               const img = new window.Image();
-              img.onload = () => resolve({ src, width: img.width, height: img.height });
+              img.crossOrigin = "Anonymous";
+              img.onload = () => {
+                resolve({ src, width: img.width, height: img.height });
+              };
               // fallback
               img.onerror = () => resolve({ src, width: 800, height: 600 });
               img.src = src;
@@ -55,20 +61,58 @@ function App() {
 
   useEffect(() => {
     fetchPhotos();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page]); // fetch photos when page changes
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setFiles(e.target.files);
-    // Image preview logic
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        setImagePreview(ev.target?.result as string);
-      };
-      reader.readAsDataURL(file);
-    } else {
-      setImagePreview(null);
+    if (e.target.files && e.target.files.length > 0) {
+      const newFilesArr = Array.from(e.target.files);
+
+      // Merge new files before existing ones
+      let updatedFilesArr: File[] = [];
+      if (files && files.length > 0) {
+        updatedFilesArr = newFilesArr.concat(Array.from(files));
+      } else {
+        updatedFilesArr = newFilesArr;
+      }
+
+      // Recreate updated FileList
+      const dt = new DataTransfer();
+      updatedFilesArr.forEach(file => dt.items.add(file));
+      setFiles(dt.files);
+
+      // Generate preview for each new file and add them BEFORE the previous ones
+      Promise.all(
+        newFilesArr.map(file => {
+          return new Promise<string>((resolve) => {
+            const reader = new FileReader();
+            reader.onload = (ev) => resolve(ev.target?.result as string);
+            reader.readAsDataURL(file);
+          });
+        })
+      ).then(newPreviews => setImagePreviews(prev => [...newPreviews, ...prev]));
+    }
+    // If no file selected, do nothing (do not clear existing previews)
+  }
+
+  const handleRemovePreview = (idx: number) => {
+    if (!files) return;
+    // Remove preview and associated file
+    const newPreviews = imagePreviews.filter((_, i) => i !== idx);
+    setImagePreviews(newPreviews);
+
+    // Recreate FileList without the removed file
+    const dt = new DataTransfer();
+    Array.from(files).forEach((file, i) => {
+      if (i !== idx) dt.items.add(file);
+    });
+    setFiles(dt.files);
+
+    // Aggiorna input file
+    const fileInput = document.getElementById('file-input') as HTMLInputElement | null;
+    if (fileInput) {
+      fileInput.files = dt.files;
+      if (dt.files.length === 0) fileInput.value = '';
     }
   }
 
@@ -102,9 +146,9 @@ function App() {
 
       const data: UploadResponse = await res.json();
 
-      // Se almeno una foto è stata rifiutata, avvisa l'utente e NON mostrare il messaggio di successo
+      // If at least one photo was rejected, notify the user and DO NOT show the success message
       if (data?.results?.some((r: UploadResult) => r.status === 'rejected')) {
-        setUploadMessage({ type: 'error', text: t('upload.sensitiveRejected', 'Una o più foto sono state rifiutate perché sospette e non verranno pubblicate.') });
+        setUploadMessage({ type: 'error', text: t('upload.sensitiveRejected') });
       } else if (!res.ok) {
         setUploadMessage({ type: 'error', text: data.message || t('upload.genericError') });
       } else {
@@ -112,7 +156,7 @@ function App() {
       }
 
       setFiles(null); // clear selected files
-      setImagePreview(null); // clear preview
+      setImagePreviews([]); // clear previews
       const fileInput = document.getElementById('file-input') as HTMLInputElement | null;
       if (fileInput) fileInput.value = '';
       fetchPhotos();
@@ -186,39 +230,33 @@ function App() {
             />
           </label>
           {/* Image preview DaisyUI style */}
-          {imagePreview && (
-            <div className="flex justify-center mt-4">
-              <div className="bg-base-200 rounded-lg p-2 border border-dashed border-primary w-64 flex flex-col items-center">
-                <img
-                  src={imagePreview}
-                  alt="Preview"
-                  className="rounded-lg mb-2"
-                  style={{
-                    maxHeight: '160px', // max height for mobile
-                    width: 'auto',
-                    maxWidth: '100%',   // responsive width
-                    objectFit: 'contain',
-                  }}
-                  loading='lazy'
-                />
-                <span className="text-xs text-gray-500">{files && files[0]?.name}</span>
-              
-              <button
-                type="button"
-                className='btn btn-xs mt-2'
-                style={{ backgroundColor: "red" }}
-                onClick={() => {
-                  setFiles(null);
-                  setImagePreview(null);
-                  const fileInput = document.getElementById('file-input') as HTMLInputElement | null;
-                  if (fileInput) {
-                    fileInput.value = '';
-                }}}
-              >
-                {t('file.remove')}
-              </button>
-              
-              </div>
+          {imagePreviews.length > 0 && (
+            <div className="flex flex-wrap justify-center mt-4 gap-4">
+              {imagePreviews.map((preview, idx) => (
+                <div key={idx} className="bg-base-200 rounded-lg p-2 border border-dashed border-primary w-64 flex flex-col items-center">
+                  <img
+                    src={preview}
+                    alt={`Preview ${idx + 1}`}
+                    className="rounded-lg mb-2"
+                    style={{
+                      maxHeight: '160px',
+                      width: 'auto',
+                      maxWidth: '100%',
+                      objectFit: 'contain',
+                    }}
+                    loading='lazy'
+                  />
+                  <span className="text-xs text-gray-500">{files && files[idx]?.name}</span>
+                  <button
+                    type="button"
+                    className='btn btn-xs mt-2'
+                    style={{ backgroundColor: "red" }}
+                    onClick={() => handleRemovePreview(idx)}
+                  >
+                    {t('file.remove')}
+                  </button>
+                </div>
+              ))}
             </div>
           )}
           <label className="label">{t('file.fileSize')}</label>
@@ -299,18 +337,43 @@ function App() {
       )}
 
       {!loadingPhotos && (
-        <MasonryPhotoAlbum
-          photos={photos}
-          columns={(containerWidth) => {
-            if (containerWidth < 400) return 1;
-            if (containerWidth < 600) return 2;
-            if (containerWidth < 800) return 3;
-            return 3;
-          }}
-          componentsProps={(containerWidth) => ({
-            image: { loading: (containerWidth || 0) > 600 ? "eager" : "lazy" },
-          })}
-        />
+        <>
+          <MasonryPhotoAlbum
+            photos={photos}
+            columns={(containerWidth) => {
+              if (containerWidth < 400) return 1;
+              if (containerWidth < 600) return 2;
+              if (containerWidth < 800) return 3;
+              return 3;
+            }}
+            componentsProps={(containerWidth) => ({
+              image: { loading: (containerWidth || 0) > 600 ? "eager" : "lazy" },
+            })}
+          />
+          {/* Pagination controls */}
+          <div className="flex justify-center mt-4 gap-2">
+            <button
+              className="btn btn-sm"
+              disabled={page <= 1}
+              onClick={() => setPage(page - 1)}
+            >
+              {t('pages.prev')}
+            </button>
+            <span
+              className="inline-flex items-center justify-center rounded-full bg-primary text-white font-bold px-3 py-1 text-lg shadow"
+              style={{ minWidth: 36, minHeight: 36 }}
+            >
+              {page}
+            </span>
+            <button
+              className="btn btn-sm"
+              disabled={page >= Math.ceil(totalPhotos / limitPhotoPage)}
+              onClick={() => setPage(page + 1)}
+            >
+              {t('pages.next')}
+            </button>
+          </div>
+        </>
       )}
     </>
   )

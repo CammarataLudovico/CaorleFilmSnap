@@ -16,6 +16,7 @@
     "@google-cloud/vision": "^5.2.0",
     "cors": "^2.8.5",
     "daisyui": "^5.0.43",
+    "exif-js": "^2.3.0",
     "express": "^5.1.0",
     "i18next": "^25.2.1",
     "i18next-fs-backend": "^2.6.0",
@@ -23,6 +24,7 @@
     "react-i18next": "^15.5.3",
     "react-photo-album": "^3.1.0",
     "serve-index": "^1.9.1",
+    "sharp": "^0.34.2",
     "sqlite3": "^5.1.7",
     "uuid": "^11.1.0"
   },
