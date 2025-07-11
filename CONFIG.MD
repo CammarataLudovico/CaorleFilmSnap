@@ -1,95 +1,39 @@
-### PROJECT INITIALIZATION ###
+# Project Configuration Overview
 
-**git init**
+This project is a full-stack web application, combining a **Node.js/Express** backend with a **Vite/React** frontend. Below is a summary of the main configuration and setup steps:
 
-**npm init** 
+## Backend Configuration
+- **Express** powers the API server and handles routing.
+- **CORS** middleware allows the frontend to communicate with the backend across origins.
+- **Multer** is used for handling file uploads, such as images.
+- **Custom Middleware** (see `uploadMiddleware.js`) is used to process uploads and can be reused in different routes.
+- **Routes** are organized in `src/backend/routes/`, e.g. `upload.js` for uploads, `pendingPhotos.js` for pending photo logic.
+- **serve-index** provides directory listing and file management for folders, useful for serving uploaded files.
+- **Database**: Photo metadata is stored in a simple database file (`photos.db`).
 
-### FOLDER STRUCTURE CREATION ###
+## Frontend Configuration
+- The frontend is created with **Vite** for fast development and hot reloading.
+- **React** is used for building UI components.
+- **Tailwind CSS** and **DaisyUI** are installed for utility-first and component-based styling.
+- Configuration files like `tailwind.config.js` and `vite.config.ts` are located in the frontend directory.
+- The frontend communicates with the backend via HTTP requests to API endpoints.
 
-CaorleFilmSnap/
-├── node_modules/       ← here are all installed libraries
-├── src/
-│   ├── backend/
-│   └── frontend/
-├── package.json        ← lists dependencies and scripts
-└── package-lock.json   ← exact version of dependencies
+## Development Workflow
+- Use `npm start` to launch both backend and frontend servers concurrently, managed by the `concurrently` package and scripts in `package.json`.
+- Test backend routes using the `test.http` file.
+- Uploaded files are stored in organized folders:
+  - `uploads/original`
+  - `uploads/pending`
+  - `uploads/approved`
 
-### INITIAL BACKEND SETUP ###
+## Localization
+- The project supports multiple languages with i18n using the `locales/` directory, with translation files for:
+  - English
+  - Italian
+  - German
+  - Spanish
 
-```js
-const express = require('express')
-const cors = require('cors')
-
-const server = express();
-const PORT = 3001;
-
-server.use(cors);
-server.use(express.json);
-
-server.listen(PORT, () => {
-    console.log('Server listening!')
-})
-```
-
-**npm i express** -> cmd  
-**npm i cors** -> cmd
-
-### INITIAL FRONTEND SETUP ###
-
-**npm create vite@latest**
-
-### TEST ROUTES CREATION ###
-
-Create the file **test.http** and write inside:
-
-```http
-###
-
-GET http://localhost:3001/
-```
-
-### SETUP COMMANDS TO START BACKEND AND FRONTEND TOGETHER ###
-
-Install concurrently with this command: **npm install concurrently --save-dev**.
-
-In package.json, add this script:
-
-```json
-"scripts": {
-  "start:backend": "node --watch src/backend/server.js",
-  "start:frontend": "npm --prefix src/frontend run dev",
-  "start": "concurrently \"npm run start:backend\" \"npm run start:frontend\""
-}
-```
-
-Now with ***npm start*** you will start both backend and frontend together.
-
-### MULTER INSTALLATION ###
-
-npm i multer -> installation
-
-in server.js add:
-
-```js
-const multer = require('multer')
-```
-
-### MIDDLEWARE CREATION ###
-
-Create the file "uploadMiddleware.js"  
-Export it to reuse it
-
-### UPLOADER CREATION ###
-
-Create the file "routes/upload.js"
-
-### INSTALLATION OF serve-index TO MANAGE FOLDER FILES ###
-
-npm install serve-index
-
-// manage entire folder files
-
-### TAILWIND CSS INSTALLATION ###
-
-Command (run inside the **frontend** folder):  
-npm install tailwindcss@latest @tailwindcss/vite@latest daisyui@latest
+## Additional Notes
+- Install all dependencies before starting development.
+- For production, use environment variables for sensitive data and add robust error handling in middleware/routes.
+- The folder structure is designed for scalability and maintainability, keeping backend and frontend logic separate.
