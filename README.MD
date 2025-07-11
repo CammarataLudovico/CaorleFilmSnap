@@ -22,7 +22,7 @@
 
 # 📦 Features
 - Photo upload and moderation system
-- Multilanguage support (EN, IT, DE, ES)
+- Multilanguage support (EN, IT, DE, ES) with i18n
 - Fast development workflow with Vite and React
 - RESTful API backend with Express.js
 - File management and directory listing
