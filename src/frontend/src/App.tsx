@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import type { FormEvent, ChangeEvent } from 'react'
 import Logo from '/logo.png'
 import './App.css'
@@ -7,8 +7,11 @@ import "react-photo-album/masonry.css"
 import "react-photo-album/masonry.css";
 import "../../locales/i18n.js"
 import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
 
 function App() {
+  // Ref per la gallery (deve stare dentro il componente)
+  const galleryRef = useRef<HTMLDivElement | null>(null);
   // const [file, setFile] = useState<File | null>(null)
   const [files, setFiles] = useState<FileList | null>(null)
   const [agreed, setAgreed] = useState(true)
@@ -22,8 +25,23 @@ function App() {
   const [imagePreviews, setImagePreviews] = useState<string[]>([]); // Cambiato da string | null a array di stringhe
   const { t, i18n } = useTranslation();
   useEffect(() => {
-  i18n.changeLanguage('it');
-}, []);
+    i18n.changeLanguage('it');
+  }, [i18n]);
+
+  // On mount, update URL to include #gallery (anchor)
+  // Aggiorna hash e scrolla alla gallery SOLO dopo che le foto sono caricate
+  useEffect(() => {
+    if (!loadingPhotos) {
+      if (window.location.hash !== '#gallery') {
+        window.location.hash = 'gallery';
+      }
+      setTimeout(() => {
+        if (galleryRef.current) {
+          galleryRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 100);
+    }
+  }, [loadingPhotos]);
 
   // Fetch photos function (to reuse after upload)
   const fetchPhotos = () => {
@@ -49,8 +67,8 @@ function App() {
             });
           })
         );
-        // Show newest first
-        setPhotos(photoObjs.reverse());
+        // Show newest first (first in array)
+        setPhotos(photoObjs);
         setLoadingPhotos(false);
       })
       .catch(() => {
@@ -338,43 +356,54 @@ function App() {
 
       {!loadingPhotos && (
         <>
-          <MasonryPhotoAlbum
-            photos={photos}
-            columns={(containerWidth) => {
-              if (containerWidth < 400) return 1;
-              if (containerWidth < 600) return 2;
-              if (containerWidth < 800) return 3;
-              return 3;
-            }}
-            componentsProps={(containerWidth) => ({
-              image: { loading: (containerWidth || 0) > 600 ? "eager" : "lazy" },
-            })}
-          />
-          {/* Pagination controls */}
-          <div className="flex justify-center mt-4 gap-2">
-            <button
-              className="btn btn-sm"
-              disabled={page <= 1}
-              onClick={() => setPage(page - 1)}
-            >
-              {t('pages.prev')}
-            </button>
-            <span
-              className="inline-flex items-center justify-center rounded-full bg-primary text-white font-bold px-3 py-1 text-lg shadow"
-              style={{ minWidth: 36, minHeight: 36 }}
-            >
-              {page}
-            </span>
-            <button
-              className="btn btn-sm"
-              disabled={page >= Math.ceil(totalPhotos / limitPhotoPage)}
-              onClick={() => setPage(page + 1)}
-            >
-              {t('pages.next')}
-            </button>
+          {/* Photo gallery section with anchor and ref */}
+          <div id="gallery" ref={galleryRef} className="w-full">
+            <MasonryPhotoAlbum
+              photos={photos}
+              columns={(containerWidth) => {
+                if (containerWidth < 400) return 1;
+                if (containerWidth < 600) return 2;
+                if (containerWidth < 800) return 3;
+                return 3;
+              }}
+              componentsProps={(containerWidth) => ({
+                image: { loading: (containerWidth || 0) > 600 ? "eager" : "lazy" },
+              })}
+            />
+            {/* Pagination controls */}
+            <div className="flex justify-center mt-4 gap-2">
+              <button
+                className="btn btn-sm"
+                disabled={page <= 1}
+                onClick={() => setPage(page - 1)}
+              >
+                {t('pages.prev')}
+              </button>
+              <span
+                className="inline-flex items-center justify-center rounded-full bg-primary text-white font-bold px-3 py-1 text-lg shadow"
+                style={{ minWidth: 36, minHeight: 36 }}
+              >
+                {page}
+              </span>
+              <button
+                className="btn btn-sm"
+                disabled={page >= Math.ceil(totalPhotos / limitPhotoPage)}
+                onClick={() => setPage(page + 1)}
+              >
+                {t('pages.next')}
+              </button>
+            </div>
           </div>
         </>
       )}
+
+      {/* Link to privacy policy and copyright at the bottom of the page */}
+      <div className="w-full flex flex-col items-center justify-center mt-12 mb-4 gap-2">
+        <Link to="/policy" className="underline text-primary text-sm font-semibold mb-1">
+          Privacy Policy
+        </Link>
+        <span className="text-xs text-base-content text-center">&copy; 2025 CaorleFilmFestival</span>
+      </div>
     </>
   )
 }

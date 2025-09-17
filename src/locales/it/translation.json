@@ -22,5 +22,9 @@
     "pages": {
         "prev": "Precedente",
         "next": "Successiva"
+    },
+    "privacy": {
+        "title": "Privacy & Policy Foto",
+        "consent": "Caricando foto su questo sito, acconsenti al loro utilizzo sul sito e sui nostri canali social (Instagram, ecc). Rispettiamo la tua privacy, non condivideremo dati personali al di fuori di questi scopi."
     }
 }

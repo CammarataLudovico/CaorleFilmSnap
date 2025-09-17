@@ -21,5 +21,9 @@
   "pages": {
         "prev": "Previous",
         "next": "Next"
+  },
+    "privacy": {
+        "title": "Privacy & Policy Foto",
+        "consent": "By uploading photos to this site, you consent to their use on the site and our social media channels (Instagram, etc.). We respect your privacy and will not share personal data outside of these purposes."
     }
 }

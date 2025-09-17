@@ -21,5 +21,9 @@
   "pages": {
         "prev": "Zurück",
         "next": "Weiter"
+  },
+    "privacy": {
+        "title": "Privacy & Policy Foto",
+        "consent": "Mit dem Hochladen von Fotos auf diese Website stimmen Sie deren Verwendung auf der Website und unseren Social-Media-Kanälen (Instagram usw.) zu. Wir respektieren Ihre Privatsphäre und geben personenbezogene Daten nicht für andere Zwecke weiter."
     }
 }

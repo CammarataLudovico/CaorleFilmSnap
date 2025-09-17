@@ -21,5 +21,9 @@
   "pages": {
         "prev": "Anterior",
         "next": "Siguiente"
+  },
+    "privacy": {
+        "title": "Privacy & Policy Foto",
+        "consent": "Al subir fotos a este sitio, aceptas su uso en el sitio y en nuestras redes sociales (Instagram, etc.). Respetamos tu privacidad y no compartiremos tus datos personales con fines distintos a estos."
     }
 }

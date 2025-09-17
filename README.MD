@@ -2,6 +2,7 @@
 
 ## 🖼️ Frontend
 - **⚛️ React**  
+- **#️⃣ Typescript**  
 - **⚡ Vite**   
 - **🔗 Gaxios/Fetch** for API calls
 
