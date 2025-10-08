@@ -1,3 +1,4 @@
+# ⚠️ This project was created to upload and manage photos of participants of the *Caorle Film Festival 2025*
 # 🚀 Tech Stack
 
 ## 🖼️ Frontend
