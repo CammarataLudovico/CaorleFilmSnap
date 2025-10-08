@@ -7,6 +7,7 @@ const multer = require('multer')
 const fs = require('fs');
 const i18next = require('i18next')
 const i18nextBackend = require('i18next-fs-backend')
+require('dotenv').config();
 
 i18next.use(i18nextBackend).init({
   fallbackLng: 'en',
@@ -23,9 +24,9 @@ const PORT = 3001;
 
 server.use(cors({
   origin: [
-    'https://caorlefilmsnap.ludov.dev',
-    'http://caorlefilmsnap.ludov.dev', // utile se test locale
-    'http://78.47.48.59:5173',          // per test con IP diretto
+    process.env.SITE_HTTPS || '',
+    process.env.SITE_HTTP || '', // utile se test locale
+    process.env.VPS_IP || '',          // per test con IP diretto
     'http://localhost:5173'
   ],
   credentials: true,

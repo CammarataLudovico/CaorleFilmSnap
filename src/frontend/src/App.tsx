@@ -197,11 +197,11 @@ function App() {
   }, [uploadMessage]);
 
   return (
-    <>
+  <div className="text-white">
       {/* Language selector */}
       <div className="flex justify-end p-4">
         <div className="flex items-center gap-2 bg-base-200 rounded-xl px-4 py-5 shadow-sm">
-          <span className="text-sm font-semibold text-base-content flex items-center gap-1">
+          <span className="text-sm font-semibold text-black dark:text-white flex items-center gap-1">
             <svg xmlns="http://www.w3.org/2000/svg" className="inline w-4 h-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v2m0 14v2m9-9h-2M5 12H3m15.364-6.364l-1.414 1.414M6.343 17.657l-1.414 1.414m12.728 0l-1.414-1.414M6.343 6.343L4.929 4.929" />
             </svg>
@@ -227,7 +227,7 @@ function App() {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <fieldset className="fieldset">
-          <legend className="fieldset-legend">{t('file.pickFile')}</legend>
+          <legend className="fieldset-legend text-white">{t('file.pickFile')}</legend>
           <label className="custom-file-label" style={{ display: 'block', cursor: 'pointer' }}>
             <button
               type="button"
@@ -235,7 +235,7 @@ function App() {
               onClick={() => document.getElementById('file-input')?.click()}
               style = {{ backgroundColor: "blueviolet"}}
             >
-              {t('file.pickFile')}
+              <span className="text-white">{t('file.pickFile')}</span>
             </button>
             <input
               id="file-input"
@@ -271,17 +271,17 @@ function App() {
                     style={{ backgroundColor: "red" }}
                     onClick={() => handleRemovePreview(idx)}
                   >
-                    {t('file.remove')}
+                    <span className="text-white">{t('file.remove')}</span>
                   </button>
                 </div>
               ))}
             </div>
           )}
-          <label className="label">{t('file.fileSize')}</label>
+          <label className="label text-white">{t('file.fileSize')}</label>
         </fieldset>
 
         <fieldset className="fieldset bg-base-100 border-base-300 rounded-box w-64 border p-4">
-          <legend className="fieldset-legend">{t('file.legalNotes')}</legend>
+          <legend className="fieldset-legend text-white">{t('file.legalNotes')}</legend>
           <label className="label">
             <input
               type="checkbox"
@@ -289,7 +289,7 @@ function App() {
               onChange={(e) => setAgreed(e.target.checked)}
               className="checkbox"
             />
-            {t('file.sensitiveCheckbox')}
+            <span className="text-white">{t('file.sensitiveCheckbox')}</span>
           </label>
         </fieldset>
 
@@ -299,7 +299,7 @@ function App() {
           disabled={uploading} // Already disables during upload
           style={{ marginTop: "1rem"}}
         >
-          {t('file.upload')}
+          <span className="text-white">{t('file.upload')}</span>
         </button>
       </form>
 
@@ -310,7 +310,7 @@ function App() {
         <div className="w-full flex justify-center my-8">
           <div className="bg-base-100 shadow-md rounded-lg p-6 max-w-sm w-full flex flex-col items-center">
             <span className="loading loading-spinner loading-lg text-primary mb-3"></span>
-            <p className="font-semibold mb-4 text-center">
+            <p className="font-semibold mb-4 text-center text-white">
               {t('upload.uploading')}
             </p>
             <progress className="progress progress-secondary w-75 h-3" value="100" max="100"></progress>
@@ -328,7 +328,7 @@ function App() {
                   ? 'bg-red-600 border-red-700'
                   : 'bg-red-600 border-red-700'}`}
             >
-            <div className={`font-semibold mb-4 text-center ${uploadMessage.type === 'success' ? 'text-success' : 'text-error'}`}>
+            <div className={`font-semibold mb-4 text-center ${uploadMessage.type === 'success' ? 'text-success' : 'text-error'} text-white`}>
               {uploadMessage.text}
             </div>
             <button
@@ -347,7 +347,7 @@ function App() {
         <div className="w-full flex justify-center my-8">
           <div className="max-w-md w-full px-4">
             <progress className="progress progress-secondary w-full h-3" value="100" max="100"></progress>
-            <p className="mt-2 text-center font-semibold">
+            <p className="mt-2 text-center font-semibold text-white">
               {t('upload.pageStartLoading')}
             </p>
           </div>
@@ -402,9 +402,9 @@ function App() {
         <Link to="/policy" className="underline text-primary text-sm font-semibold mb-1">
           Privacy Policy
         </Link>
-        <span className="text-xs text-base-content text-center">&copy; 2025 CaorleFilmFestival</span>
+  <span className="text-xs text-black dark:text-white text-center">&copy; 2025 CaorleFilmFestival</span>
       </div>
-    </>
+  </div>
   )
 }
 
