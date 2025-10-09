@@ -17,7 +17,7 @@
 - **🪶 SQLite3**  
 
 ## 📸 Photo Filtering
-- **🔍 Google AI Vision
+- **🔍 Google AI Vision**
 
 ---
 
