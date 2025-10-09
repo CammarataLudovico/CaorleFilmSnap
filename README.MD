@@ -16,6 +16,9 @@
 ## 🗄️ Database
 - **🪶 SQLite3**  
 
+## 📸 Photo Filtering
+- **🔍 Google AI Vision
+
 ---
 
 > **A modern, lightweight, and easily deployable stack!**
@@ -29,6 +32,7 @@
 - RESTful API backend with Express.js
 - File management and directory listing
 - SQLite3 database for lightweight storage
+- Image filtering with Google AI Vision
 
 # 📁 Folder Structure
 ```
@@ -68,7 +72,6 @@ CaorleFilmSnap-V2/
 - Access the frontend at `http://localhost:5173`
 - Backend API runs at `http://localhost:3001`
 - Upload photos via the provided UI or API endpoints
-- Moderate and approve photos through the admin interface
 
 # 🌍 Localization
 - Translation files are located in `locales/`
