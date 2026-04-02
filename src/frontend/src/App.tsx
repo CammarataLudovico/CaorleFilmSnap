@@ -5,9 +5,14 @@ import './App.css'
 import { MasonryPhotoAlbum } from "react-photo-album";
 import "react-photo-album/masonry.css"
 import "react-photo-album/masonry.css";
-import "../../locales/i18n.js"
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
+
+const API_BASE_URL = (
+  import.meta.env.VITE_API_BASE_URL ||
+  import.meta.env.VITE_API_IP ||
+  'https://api.caorlefilmsnap.ludov.dev'
+).replace(/\/+$/, '');
 
 function App() {
   // Ref per la gallery (deve stare dentro il componente)
@@ -46,14 +51,15 @@ function App() {
   // Fetch photos function (to reuse after upload)
   const fetchPhotos = () => {
     setLoadingPhotos(true);
-    fetch(`https://api.caorlefilmsnap.ludov.dev/api/photos/approved?page=${page}&limit=${limitPhotoPage}`)
+    fetch(`${API_BASE_URL}/api/photos/approved?page=${page}&limit=${limitPhotoPage}`)
       .then(res => res.json())
       .then(async data => {
         setTotalPhotos(data.total || 0); // track total for pagination
+        const filesFromApi = Array.isArray(data?.files) ? data.files : [];
         // For each file, create an object with src and dimensions (use placeholder for width/height)
         const photoObjs = await Promise.all(
-          data.files.map(async (filename: string) => {
-            const src = `https://api.caorlefilmsnap.ludov.dev/uploads/approved/${filename}`;
+          filesFromApi.map(async (filename: string) => {
+            const src = `${API_BASE_URL}/uploads/approved/${encodeURIComponent(filename)}`;
             // Just get image dimensions, do NOT try to orient remote images with EXIF-js (not possible)
             return new Promise<{ src: string; width: number; height: number }>((resolve) => {
               const img = new window.Image();
@@ -154,7 +160,7 @@ function App() {
 
     setUploading(true);
     try {
-      const res = await fetch("https://api.caorlefilmsnap.ludov.dev/upload", {
+      const res = await fetch(`${API_BASE_URL}/upload`, {
         method: "POST",
         body: formData,
       });
@@ -220,7 +226,7 @@ function App() {
       </div>
 
       <div>
-        <a href="https://caorlefilmfestival.com" target="_blank">
+        <a href="https://caorlefilmfestival.com" target="_blank" rel="noopener noreferrer">
           <img src={Logo} className="logo" alt="Vite logo" />
         </a>
       </div>
