@@ -19,6 +19,7 @@ const Admin = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [keySaved, setKeySaved] = useState(false);
 
   const totalPages = Math.max(1, Math.ceil(total / ADMIN_PAGE_LIMIT));
 
@@ -43,6 +44,8 @@ const Admin = () => {
 
   const handleSaveKey = () => {
     localStorage.setItem(ADMIN_KEY_STORAGE, adminKey.trim());
+    setKeySaved(true);
+    setTimeout(() => setKeySaved(false), 2000);
   };
 
   const handleDelete = async (filename: string) => {
@@ -77,21 +80,29 @@ const Admin = () => {
         </Link>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-2 mb-6">
+      <form
+        className="flex flex-col sm:flex-row gap-2 mb-6"
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleSaveKey();
+        }}
+      >
         <input
           type="password"
+          name="admin-key"
+          autoComplete="current-password"
           className="input input-bordered w-full sm:max-w-md"
           placeholder="Admin key"
           value={adminKey}
           onChange={(e) => setAdminKey(e.target.value)}
         />
-        <button className="btn btn-primary" onClick={handleSaveKey}>
-          Save key
+        <button type="submit" className="btn btn-primary">
+          {keySaved ? 'Saved ✓' : 'Save key'}
         </button>
-        <button className="btn" onClick={load} disabled={loading}>
+        <button type="button" className="btn" onClick={load} disabled={loading}>
           Refresh
         </button>
-      </div>
+      </form>
 
       {error && <div className="alert alert-error mb-4">{error}</div>}
 
