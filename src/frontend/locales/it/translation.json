@@ -1,0 +1,27 @@
+{
+  "file": {
+    "pickFile": "Scegli file",
+    "fileSize": "Max 10MB per file, max 10 file",
+    "legalNotes": "Note legali",
+    "sensitiveCheckbox": "Confermo che le foto non contengono contenuti sensibili o inappropriati",
+    "sensitiveAgreed": "Devi accettare le note legali prima di caricare",
+    "plsSelect": "Seleziona almeno un file",
+    "upload": "Carica",
+    "remove": "Rimuovi"
+  },
+  "upload": {
+    "uploading": "Caricamento in corso...",
+    "success": "Foto caricate con successo!",
+    "sensitiveRejected": "Una o più foto sono state rifiutate perché contengono contenuti inappropriati",
+    "genericError": "Errore durante il caricamento",
+    "uploadError": "Errore di caricamento:",
+    "unkownError": "Errore sconosciuto"
+  },
+  "pages": {
+    "prev": "Precedente",
+    "next": "Successivo"
+  },
+  "privacy": {
+    "consent": "Caricando le foto, acconsenti al trattamento dei dati personali ai sensi del GDPR. Le immagini potranno essere utilizzate per scopi promozionali legati al Caorle Film Festival."
+  }
+}
