@@ -51,6 +51,10 @@ const uploadLimiter = rateLimit({
   message: { message: 'Upload rate exceeded. Please retry later.' },
 });
 
+// Behind Caddy reverse proxy: trust first hop so express-rate-limit
+// keys on the real client IP (X-Forwarded-For) instead of the proxy.
+server.set('trust proxy', 1);
+
 server.disable('x-powered-by');
 
 server.use(
