@@ -1,151 +1,121 @@
-# Security Audit - Dependency Vulnerabilities
+# Security Audit - Full Codebase Hardening
 
-**Date:** 2026-02-03  
+**Date:** 2026-04-02  
 **Repository:** CaorleFilmSnap
 
-## Summary
+## Executive Summary
 
-A comprehensive security audit was conducted on all project dependencies. Multiple vulnerabilities were identified and successfully resolved.
+A full security hardening pass was applied across backend, frontend and dependency supply chain.
 
-## Vulnerabilities Found and Fixed
+Main outcomes:
+- ✅ Admin-only moderation endpoints (approve, reject, pending list)
+- ✅ Public exposure reduced to approved photos only
+- ✅ Path traversal protections on filename-based file operations
+- ✅ Upload abuse protections (strict MIME allowlist + request limits + rate limits)
+- ✅ Reduced information leakage in API error responses
+- ✅ Dependency vulnerabilities remediated (root + frontend)
 
-### Root Package Dependencies
+## Backend Security Changes
 
-#### 1. **multer** (Critical)
-- **Initial Version:** 2.0.0
-- **Fixed Version:** 2.0.2
-- **Vulnerabilities:**
-  - Denial of Service via unhandled exception from malformed request
-  - Denial of Service via unhandled exception
-- **Severity:** High
-- **Action:** Updated to patched version 2.0.2
+### 1. Authentication and Authorization
+- Added `src/backend/middleware/authMiddleware.js`
+- Added API-key based protection for admin endpoints (`X-Admin-Key` or `Authorization: Bearer ...`)
+- Enforced admin auth on:
+  - `GET /api/pending-photos`
+  - `PUT /api/photos/:filename/approve`
+  - `PUT /api/photos/:filename/reject`
 
-#### 2. **body-parser**
-- **Initial Version:** Vulnerable transitive dependency
-- **Fixed Version:** 2.2.2
-- **Vulnerability:** Denial of Service when URL encoding is used
-- **Severity:** Moderate
-- **Action:** Auto-fixed via npm audit fix
+### 2. File Operation Safety
+- Added `src/backend/utils/filenameSafety.js`
+- Implemented strict filename normalization and allowlist validation
+- Implemented path resolution checks to prevent directory traversal
 
-#### 3. **qs**
-- **Initial Version:** < 6.14.1
-- **Fixed Version:** 6.14.1
-- **Vulnerability:** arrayLimit bypass allows DoS via memory exhaustion
-- **Severity:** High
-- **Action:** Auto-fixed via npm audit fix
+### 3. Upload Pipeline Hardening
+- Updated `src/backend/middleware/uploadMiddleware.js`
+  - strict MIME allowlist: JPEG, PNG, WebP, GIF
+  - server-side extension mapping (not trusted from user original name)
+  - tighter upload limits (`fileSize`, `files`, `parts`, `fields`)
+- Updated `src/backend/routes/upload.js`
+  - safer DB path initialization
+  - safer per-file processing and fallback handling
+  - generic error messages to clients
 
-#### 4. **jws**
-- **Initial Version:** 4.0.0
-- **Fixed Version:** 4.0.1
-- **Vulnerability:** Improperly Verifies HMAC Signature
-- **Severity:** High
-- **Action:** Auto-fixed via npm audit fix
+### 4. API and Transport Hardening
+- Updated `src/backend/src/server.js`
+  - removed directory listing (`serve-index` removed)
+  - now publicly serves only `/uploads/approved`
+  - added `helmet`
+  - added `express-rate-limit` with separate policies for API, upload and admin routes
+  - safer CORS allowlist logic
+  - safer global error handling
+  - removed duplicated insecure pending endpoint definition in server bootstrap
 
-#### 5. **lodash**
-- **Initial Version:** 4.0.0 - 4.17.21
-- **Fixed Version:** 4.17.23
-- **Vulnerability:** Prototype Pollution in `_.unset` and `_.omit` functions
-- **Severity:** Moderate
-- **Action:** Auto-fixed via npm audit fix
+## Frontend Security/Resilience Changes
 
-#### 6. **react-router-dom**
-- **Initial Version:** 7.8.2
-- **Fixed Version:** 7.13.0
-- **Vulnerabilities:**
-  - CSRF issue in Action/Server Action Request Processing
-  - XSS via Open Redirects
-  - SSR XSS in ScrollRestoration
-  - Unexpected external redirect via untrusted paths
-  - XSS Vulnerability
-- **Severity:** High
-- **Action:** Auto-fixed via npm audit fix
+- Updated `src/frontend/src/App.tsx`
+  - centralized API base URL (`VITE_API_BASE_URL` / fallback)
+  - encoded photo filenames in generated URLs
+  - added `rel="noopener noreferrer"` to external link with `target="_blank"`
+- Updated `src/frontend/src/vite-env.d.ts` with typed env variables
+- Updated `src/frontend/src/Policy.tsx` to remove lint/build issue
 
-#### 7. **tar-fs**
-- **Initial Version:** 2.0.0 - 2.1.3
-- **Fixed Version:** 2.1.4
-- **Vulnerability:** Symlink validation bypass with predictable destination directory
-- **Severity:** High
-- **Action:** Auto-fixed via npm audit fix
+## Dependency Security Changes
 
-#### 8. **tar** (Transitive Dependency)
-- **Initial Version:** <= 7.5.6
-- **Fixed Version:** 7.5.7
-- **Vulnerabilities:**
-  - Arbitrary File Overwrite and Symlink Poisoning
-  - Race Condition in Path Reservations
-  - Arbitrary File Creation/Overwrite via Hardlink Path Traversal
-- **Severity:** High
-- **Action:** Added npm override to force version 7.5.7
+### Root package
+- Upgraded key runtime dependencies:
+  - `express` → `^5.2.1`
+  - `multer` → `^2.1.1`
+  - `sqlite3` → `^6.0.1`
+  - `react-router-dom` → `^7.13.2`
+- Added security/runtime dependencies:
+  - `helmet`, `express-rate-limit`, `dotenv`
+- Added/updated overrides:
+  - `tar`, `path-to-regexp`, `qs`
 
-### Frontend Package Dependencies
-
-#### 1. **@eslint/plugin-kit**
-- **Initial Version:** < 0.3.4
-- **Fixed Version:** >= 0.3.4
-- **Vulnerability:** Regular Expression Denial of Service attacks through ConfigCommentParser
-- **Severity:** Low
-- **Action:** Auto-fixed via npm audit fix
-
-#### 2. **js-yaml**
-- **Initial Version:** 4.0.0 - 4.1.0
-- **Fixed Version:** 4.1.1
-- **Vulnerability:** Prototype pollution in merge (<<)
-- **Severity:** Moderate
-- **Action:** Auto-fixed via npm audit fix
-
-#### 3. **react-router-dom** (Frontend)
-- **Initial Version:** 7.8.2
-- **Fixed Version:** Updated via npm audit fix
-- **Vulnerabilities:** Same as root package
-- **Severity:** High
-- **Action:** Auto-fixed via npm audit fix
-
-#### 4. **tar** (Frontend Transitive)
-- **Initial Version:** <= 7.5.6
-- **Fixed Version:** 7.5.7
-- **Vulnerabilities:** Same as root package
-- **Severity:** High
-- **Action:** Auto-fixed via npm audit fix
-
-#### 5. **vite**
-- **Initial Version:** 6.3.5
-- **Fixed Version:** 6.4.1
-- **Vulnerabilities:**
-  - Middleware may serve files starting with same name as public directory
-  - `server.fs` settings not applied to HTML files
-  - `server.fs.deny` bypass via backslash on Windows
-- **Severity:** Moderate
-- **Action:** Auto-fixed via npm audit fix
-
-## Changes Made
-
-1. **Updated package.json:**
-   - Changed `multer` from `^2.0.0` to `^2.0.2`
-   - Added `overrides` section to force `tar` version `^7.5.7`
-
-2. **Ran `npm audit fix`** on root package to automatically fix other vulnerabilities
-
-3. **Ran `npm audit fix`** on frontend package to automatically fix frontend vulnerabilities
-
-4. **Updated lock files:**
-   - `/package-lock.json`
-   - `/src/frontend/package-lock.json`
+### Frontend package
+- Upgraded:
+  - `vite` → `^8.0.3`
+  - `@vitejs/plugin-react` → `^6.0.1`
+  - `@tailwindcss/vite` → `^4.2.2`
+  - `react-router-dom` → `^7.13.2`
+- Added overrides:
+  - `rollup`, `picomatch`, `tar`
 
 ## Verification
 
-After applying all fixes:
-- **Root package:** ✅ `npm audit` reports 0 vulnerabilities
-- **Frontend package:** ✅ `npm audit` reports 0 vulnerabilities
+Validation commands executed after changes:
 
-## Recommendations
+1. Root dependency audit:
+   - `npm audit --omit=dev --json`
+   - Result: **0 vulnerabilities**
 
-1. **Regular Security Audits:** Run `npm audit` regularly (e.g., weekly or before each release)
-2. **Automated Monitoring:** Consider using tools like Dependabot or Snyk for automated vulnerability monitoring
-3. **Keep Dependencies Updated:** Regularly update dependencies to get security patches
-4. **Review Breaking Changes:** When updating major versions, review changelogs for breaking changes
+2. Frontend dependency audit:
+   - `npm --prefix src/frontend audit --omit=dev --json`
+   - Result: **0 vulnerabilities**
 
-## Notes
+3. Frontend quality checks:
+   - `npm --prefix src/frontend run build` ✅
+   - `npm --prefix src/frontend run lint` ✅
 
-- All vulnerability fixes have been tested and verified
-- No breaking changes were introduced
-- Application functionality remains intact
+4. Backend syntax checks:
+   - `node --check` on modified backend files ✅
+
+## Environment Variables Required
+
+Configured/expected values include:
+- `ADMIN_API_KEY`
+- `CORS_ORIGINS`
+- `MAX_UPLOAD_FILE_MB`
+- `MAX_FILES_PER_REQUEST`
+- `RATE_LIMIT_MAX`
+- `UPLOAD_RATE_LIMIT_MAX`
+- `ADMIN_RATE_LIMIT_MAX`
+
+> Important: `ADMIN_API_KEY` must be set to a strong random value in deployment.
+
+## Residual Operational Recommendations
+
+1. Rotate `ADMIN_API_KEY` periodically and store it in a secrets manager.
+2. Add CI gates for `npm audit --omit=dev` and frontend `npm audit --omit=dev`.
+3. Add integration tests for admin moderation routes and auth failures.
+4. Consider signed admin JWTs and role-based auth if multiple admin users are expected.

@@ -1,135 +1,118 @@
-const express = require('express')
-const cors = require('cors')
+const env = require('./env');
+const express = require('express');
+const cors = require('cors');
+const helmet = require('helmet');
+const multer = require('multer');
+const fs = require('fs');
+const path = require('path');
+const i18next = require('i18next');
+const i18nextBackend = require('i18next-fs-backend');
+const rateLimit = require('express-rate-limit');
 const uploadRoutes = require('../routes/upload');
 const pendingPhotosRoutes = require('../routes/pendingPhotos');
-const serveIndex = require('serve-index');
-const multer = require('multer')
-const fs = require('fs');
-const i18next = require('i18next')
-const i18nextBackend = require('i18next-fs-backend')
-require('dotenv').config();
+const photosRoutes = require('../routes/photos');
 
 i18next.use(i18nextBackend).init({
   fallbackLng: 'en',
   backend: {
-    loadPath: __dirname + '../../locales/{{lng}}/translation.json'
-  }
+    loadPath: path.join(__dirname, '../../locales/{{lng}}/translation.json'),
+  },
 }, () => {
-  console.log('i18next backend ready')
-}
-)
+  console.log('i18next backend ready');
+});
 
 const server = express();
-const PORT = 3001;
 
-server.use(cors({
-  origin: [
-    process.env.SITE_HTTPS || '',
-    process.env.SITE_HTTP || '', // utile se test locale
-    process.env.VPS_IP || '',          // per test con IP diretto
-    'http://localhost:5173'
-  ],
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  exposedHeaders: ['Content-Length'], // opzionale
-}));
+const uploadsRoot = path.join(__dirname, '..', 'uploads');
+const approvedDir = path.join(uploadsRoot, 'approved');
+fs.mkdirSync(path.join(uploadsRoot, 'pending'), { recursive: true });
+fs.mkdirSync(approvedDir, { recursive: true });
 
-server.use(express.json());
+const allowedOrigins = new Set(
+  (env.CORS_ORIGINS ? env.CORS_ORIGINS.split(',') : ['http://localhost:5173'])
+    .map((o) => o.trim())
+    .filter(Boolean)
+);
+if (allowedOrigins.size === 0) allowedOrigins.add('http://localhost:5173');
+
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: env.RATE_LIMIT_MAX,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: 'Too many requests. Please retry later.' },
+});
+
+const uploadLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: env.UPLOAD_RATE_LIMIT_MAX,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: 'Upload rate exceeded. Please retry later.' },
+});
+
+server.disable('x-powered-by');
+
+server.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+    contentSecurityPolicy: false,
+  })
+);
+
+server.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.has(origin)) return callback(null, true);
+      return callback(new Error('Origin not allowed by CORS'));
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Admin-Key'],
+    exposedHeaders: ['Content-Length'],
+  })
+);
+
+server.use(express.json({ limit: '64kb' }));
+
+server.use('/api', apiLimiter);
+server.use(['/upload', '/api/upload'], uploadLimiter);
 
 server.get('/', (_req, res) => {
-    res.send("Hello World");
-})
+  res.json({ status: 'ok' });
+});
 
-const path = require('path');
-
-// server.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
-server.use('/', uploadRoutes)
-server.use('/api', uploadRoutes);
+server.use('/', uploadRoutes);
 server.use('/api', pendingPhotosRoutes);
-// serve the entire uploads folder with file index
-server.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')), serveIndex(path.join(__dirname, '..', 'uploads'), {'icons': true})); // gestione intera cartella file
+server.use('/api/photos', photosRoutes);
 
-// API: Approve a photo (move from pending to approved)
-server.put('/api/photos/:filename/approve', (req, res) => {
-  const filename = req.params.filename;
-  const pendingPath = path.join(__dirname, '../uploads/pending', filename);
-  const publicPath = path.join(__dirname, '../uploads/approved', filename);
+server.use(
+  '/uploads/approved',
+  express.static(approvedDir, { index: false, maxAge: '7d', immutable: true })
+);
 
-  // Move only the image file
-  fs.rename(pendingPath, publicPath, (err) => {
-    if (err) {
-      return res.status(500).json({ message: 'Error moving file', error: err.message });
-    }
-    res.json({ message: 'Photo approved' });
-  });
+server.use((_req, res) => {
+  res.status(404).json({ message: 'Page not found' });
 });
 
-// API: Reject a photo (delete from pending)
-server.put('/api/photos/:filename/reject', (req, res) => {
-  const filename = req.params.filename;
-  const pendingPath = path.join(__dirname, '../uploads/pending', filename);
-
-  fs.unlink(pendingPath, (err) => {
-    if (err) {
-      return res.status(500).json({ message: 'Error deleting file', error: err.message });
-    }
-    res.json({ message: 'Photo rejected and deleted' });
-  });
-});
-
-// API: returns the list of files in /uploads/pending
-server.get('/api/pending-photos', (req, res) => {
-  const dir = path.join(__dirname, '../uploads/pending');
-  fs.readdir(dir, (err, files) => {
-    if (err) {
-      return res.status(500).json({ message: 'Error reading directory', error: err.message });
-    }
-    // Filter only images (jpg, jpeg, png, webp, gif)
-    const imageFiles = files.filter(f => /\.(jpg|jpeg|png|webp|gif)$/i.test(f));
-    res.json({ files: imageFiles });
-  });
-});
-
-// API: returns the list of files in /uploads/approved (approved photos)
-server.get('/api/photos/approved', (req, res) => {
-  const page = parseInt(req.query.page) || 1;
-  const limit = parseInt(req.query.limit) || 9;
-  const offset = (page - 1) * limit;
-  const dir = path.join(__dirname, '../uploads/approved');
-  fs.readdir(dir, (err, files) => {
-    if (err) {
-      return res.status(500).json({ message: 'Error reading directory', error: err.message });
-    }
-    // Filter only images (jpg, jpeg, png, webp, gif)
-    const imageFiles = files
-      .filter(f => /\.(jpg|jpeg|png|webp|gif)$/i.test(f))
-      .sort((a, b) => fs.statSync(path.join(dir, b)).mtimeMs - fs.statSync(path.join(dir, a)).mtimeMs); // order by date
-
-    const paginatedFiles = imageFiles.slice(offset, offset + limit);
-
-    res.json({ 
-      page,
-      limit,
-      total: imageFiles.length,
-      totalPages: Math.ceil(imageFiles.length / limit),
-      files: paginatedFiles
-    });
-  });
-});
-
-server.use((req, res) => {
-  res.status(404).send('Page not found');
-});
-
-server.use((err, req, res, next) => {
-  console.error('❌ Global error:', err.message);
-  if (err instanceof multer.MulterError) {
-    return res.status(400).json({ message: 'Multer error: ' + err.message });
+server.use((err, _req, res, _next) => {
+  if (err?.message === 'Origin not allowed by CORS') {
+    return res.status(403).json({ message: 'Forbidden origin' });
   }
-  res.status(500).json({ message: 'Internal server error: ' + err.message });
+  console.error('Global error:', err);
+  if (err instanceof multer.MulterError) {
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      return res.status(413).json({ message: 'Uploaded file is too large' });
+    }
+    return res.status(400).json({ message: 'Invalid upload request' });
+  }
+  return res.status(500).json({ message: 'Internal server error' });
 });
 
-server.listen(PORT, () => {
-    console.log('Server listening!')
-})
+const httpServer = server.listen(env.PORT, () => {
+  console.log(`Server listening on port ${env.PORT}`);
+});
+
+process.on('SIGTERM', () => httpServer.close(() => process.exit(0)));
+process.on('SIGINT', () => httpServer.close(() => process.exit(0)));

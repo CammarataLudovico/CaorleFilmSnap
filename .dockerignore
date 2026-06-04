@@ -1,0 +1,11 @@
+node_modules
+src/frontend/node_modules
+src/frontend/dist
+.git
+.vscode
+.env
+src/backend/uploads
+src/backend/keys
+src/data
+npm-debug.log*
+*.log

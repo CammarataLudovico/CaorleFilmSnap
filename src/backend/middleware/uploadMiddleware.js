@@ -4,6 +4,24 @@ const { v4: uuidv4 } = require('uuid');
 const fs = require('fs');
 const path = require('path');
 
+function parsePositiveInteger(value, fallback) {
+  const parsed = Number.parseInt(value, 10);
+  if (Number.isNaN(parsed) || parsed <= 0) {
+    return fallback;
+  }
+  return parsed;
+}
+
+const MIME_TO_EXTENSION = {
+  'image/jpeg': '.jpg',
+  'image/png': '.png',
+  'image/webp': '.webp',
+  'image/gif': '.gif',
+};
+
+const MAX_UPLOAD_FILE_MB = parsePositiveInteger(process.env.MAX_UPLOAD_FILE_MB, 10);
+const MAX_FILES_PER_REQUEST = parsePositiveInteger(process.env.MAX_FILES_PER_REQUEST, 10);
+
 const uploadDir = path.join(__dirname, '../uploads/pending');
 
 if (!fs.existsSync(uploadDir)) {
@@ -13,29 +31,40 @@ if (!fs.existsSync(uploadDir)) {
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, uploadDir); // absolute path
-    console.log('📁 Saving file in:', uploadDir);
   },
   filename: function (req, file, cb) {
     const timestamp = Date.now();
     const uid = uuidv4();
-    const ext = path.extname(file.originalname);
+    const normalizedMime = String(file.mimetype || '').toLowerCase();
+    const ext = MIME_TO_EXTENSION[normalizedMime] || '.jpg';
     const filename = `caorlefilmfestival-${timestamp}-${uid}${ext}`;
     cb(null, filename);
   }
 });
 
 const fileFilter = (req, file, cb) => {
-    if (file.mimetype.startsWith('image/')) {
+    const normalizedMime = String(file.mimetype || '').toLowerCase();
+    if (Object.hasOwn(MIME_TO_EXTENSION, normalizedMime)) {
         cb(null, true)
-    } else {
-        cb(new Error('Only images allowed', false))
+        return;
     }
+
+    cb(new Error('Only JPEG, PNG, WebP or GIF images are allowed'))
 }
 
 const upload = multer({
   storage,
   fileFilter,
-  limits: { fileSize: 4096 * 4096}
+  limits: {
+    fileSize: MAX_UPLOAD_FILE_MB * 1024 * 1024,
+    files: MAX_FILES_PER_REQUEST,
+    fields: 10,
+    parts: MAX_FILES_PER_REQUEST + 10,
+    fieldSize: 20 * 1024,
+  }
 });
 
-module.exports = { upload };
+module.exports = {
+  upload,
+  MAX_FILES_PER_REQUEST,
+};

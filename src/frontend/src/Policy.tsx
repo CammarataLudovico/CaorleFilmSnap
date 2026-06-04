@@ -1,11 +1,11 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { useTranslation } from 'react-i18next';
 
 const Policy = () => {
   const { t, i18n } = useTranslation();
   useEffect(() => {
       i18n.changeLanguage('it');
-    }, []);
+    }, [i18n]);
   return (
     <div className="max-w-2xl mx-auto p-8">
       {/* Language selector */}
