@@ -6,8 +6,11 @@
   "author": "Ludovico Cammarata",
   "type": "commonjs",
   "main": "server.js",
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
-    "test": "npm start",
+    "test": "echo 'No tests configured yet' && exit 0",
     "rebuild:sqlite": "npm rebuild sqlite3",
     "start:backend": "node scripts/ensureSqliteCompat.js && node --watch src/backend/src/server.js",
     "start:frontend": "npm --prefix src/frontend run dev",
@@ -25,7 +28,8 @@
     "multer": "^2.1.1",
     "sharp": "^0.34.2",
     "sqlite3": "^6.0.1",
-    "uuid": "^11.1.0"
+    "uuid": "^11.1.0",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "concurrently": "^9.1.2",
