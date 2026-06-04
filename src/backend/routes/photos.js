@@ -54,6 +54,23 @@ router.put('/:filename/reject', requireAdmin, adminLimiter, async (req, res) => 
   }
 });
 
+router.delete('/:filename', requireAdmin, adminLimiter, async (req, res) => {
+  const filename = normalizeFilename(req.params.filename);
+  if (!filename) return res.status(400).json({ message: 'Invalid filename' });
+
+  const approvedPath = resolveInDirectory(approvedDir, filename);
+  if (!approvedPath) return res.status(400).json({ message: 'Invalid file path' });
+
+  try {
+    await fs.promises.unlink(approvedPath);
+    return res.json({ message: 'Photo deleted' });
+  } catch (err) {
+    if (err.code === 'ENOENT') return res.status(404).json({ message: 'Photo not found' });
+    console.error('Error deleting photo:', err);
+    return res.status(500).json({ message: 'Unable to delete photo' });
+  }
+});
+
 router.get('/approved', async (req, res) => {
   const requestedPage = Number.parseInt(req.query.page, 10);
   const requestedLimit = Number.parseInt(req.query.limit, 10);

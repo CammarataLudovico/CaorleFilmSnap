@@ -24,6 +24,17 @@ export async function fetchApprovedPhotos(page: number, limit: number): Promise<
   return res.json();
 }
 
+export async function deleteApprovedPhoto(filename: string, adminKey: string): Promise<void> {
+  const res = await fetch(`${API_BASE_URL}/api/photos/${encodeURIComponent(filename)}`, {
+    method: 'DELETE',
+    headers: { 'X-Admin-Key': adminKey },
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.message || 'Failed to delete photo');
+  }
+}
+
 export async function loadPhotoDimensions(filenames: string[]): Promise<Photo[]> {
   return Promise.all(
     filenames.map((filename) => {
