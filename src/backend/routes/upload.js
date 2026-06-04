@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const sharp = require('sharp');
 const { upload, MAX_FILES_PER_REQUEST } = require('../middleware/uploadMiddleware');
-const { moderateImage } = require('../utils/moderateImage');
 const sqlite3 = require('sqlite3');
 const path = require('path');
 const fs = require('fs');
@@ -33,41 +32,32 @@ router.post('/upload', upload.array('file', MAX_FILES_PER_REQUEST), async (req, 
 
     try {
         for (const file of req.files) {
-        let status = 'pending_moderator';
-        let flags = null;
+        // Moderation disabled (Google Vision billing off): auto-approve all uploads.
+        // Admin removes unwanted photos manually from the /admin page.
+        let status = 'approved';
+        const flags = null;
 
         const pendingPath = path.join(__dirname, '../uploads/pending', file.filename);
         const approvedPath = path.join(__dirname, '../uploads/approved', file.filename);
         const originalPath = path.join(__dirname, '../uploads/original', file.filename);
 
         try {
-            // Google Vision moderation
-            const moderationResult = await moderateImage(pendingPath);
-            status = moderationResult.status;
-            flags = moderationResult.flags;
+            // Ensure approved and original directories exist
+            fs.mkdirSync(path.dirname(approvedPath), { recursive: true });
+            fs.mkdirSync(path.dirname(originalPath), { recursive: true });
 
-            if (status === 'approved') {
-                // Ensure approved and original directories exist
-                fs.mkdirSync(path.dirname(approvedPath), { recursive: true });
-                fs.mkdirSync(path.dirname(originalPath), { recursive: true });
+            // Save original file
+            await fs.promises.copyFile(pendingPath, originalPath);
 
-                // Save original file
-                await fs.promises.copyFile(pendingPath, originalPath);
+            // Auto-rotate based on EXIF and save to approved
+            await sharp(pendingPath)
+                .rotate()
+                .resize({ width: 1920, withoutEnlargement: true })
+                .jpeg({ quality: 50 })
+                .toFile(approvedPath);
 
-                // Auto-rotate based on EXIF and save to approved
-                await sharp(pendingPath)
-                    .rotate()
-                    .resize({ width: 1920, withoutEnlargement: true })
-                    .jpeg({ quality: 50 })
-                    .toFile(approvedPath);
-
-                // Remove pending file after processing
-                await fs.promises.unlink(pendingPath);
-            } else if (status === 'rejected') {
-                await fs.promises.unlink(pendingPath).catch(() => {});
-            } else if (status === 'error') {
-                status = 'pending_moderator';
-            }
+            // Remove pending file after processing
+            await fs.promises.unlink(pendingPath);
         } catch (fileErr) {
             console.error('Error while processing file:', file.filename, fileErr);
             status = 'pending_moderator';
